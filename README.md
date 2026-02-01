@@ -7,7 +7,7 @@ A full-stack application where users select 4 parent Pokemon (2 pairs), generate
 - **Frontend**: React + Vite + TypeScript + shadcn/ui + Tailwind CSS
 - **Backend**: Express + TypeScript
 - **Shared**: Zod schemas for runtime validation and type inference
-- **LLM**: OpenRouter API (GPT-4o-mini for generation, Kimi K2 for judging)
+- **LLM**: OpenRouter API (configurable models for generation and judging)
 - **Testing**: Vitest + React Testing Library + StrykerJS (mutation testing)
 
 ## Project Structure
@@ -39,14 +39,16 @@ cd home-task-pokefusion
 npm install
 ```
 
-3. Create `.env` file in the server directory:
+3. Create `.env` file in the root directory:
 ```bash
-cp server/.env.example server/.env
+cp .env.example .env
 ```
 
-4. Add your OpenRouter API key to `server/.env`:
+4. Add your OpenRouter API key to `.env`:
 ```
 OPENROUTER_API_KEY=sk-or-your-api-key-here
+GENERATOR_MODEL=nvidia/nemotron-3-nano-30b-a3b:free
+JUDGE_MODEL=tngtech/deepseek-r1t2-chimera:free
 PORT=3001
 POKEAPI_BASE_URL=https://pokeapi.co/api/v2
 ```
@@ -55,24 +57,24 @@ POKEAPI_BASE_URL=https://pokeapi.co/api/v2
 
 ### Development Mode
 
-Start both server and client in development mode:
+Start both server and client concurrently:
 
 ```bash
-# Terminal 1 - Start the server
-cd server && npm run dev
-
-# Terminal 2 - Start the client
-cd client && npm run dev
+npm run dev
 ```
 
-The client will be available at `http://localhost:5173`
-The server will be available at `http://localhost:3001`
+Or run them separately:
+
+```bash
+npm run dev:server    # Server at http://localhost:3001
+npm run dev:client    # Client at http://localhost:5173
+```
 
 ### Production Build
 
 ```bash
-# Build all packages
-npm run build -ws
+# Build all packages (shared must build first)
+npm run build
 
 # Start the server
 cd server && npm start
@@ -80,22 +82,28 @@ cd server && npm start
 
 ## Running Tests
 
-### Run all tests:
 ```bash
-# Server tests
-cd server && npm test
+# Run all tests
+npm run test
 
-# Client tests
-cd client && npm test
+# Run server or client tests only
+npm run test:server
+npm run test:client
+
+# Run a single test file
+cd server && npx vitest run tests/schemas.test.ts
+cd client && npx vitest run tests/components.test.tsx
 ```
 
-### Run mutation testing (StrykerJS):
-```bash
-# Server mutation tests
-cd server && npm run test:mutation
+### Mutation Testing (StrykerJS)
 
-# Client mutation tests
-cd client && npm run test:mutation
+```bash
+# Run all mutation tests
+npm run test:mutation
+
+# Run server or client mutation tests only
+npm run test:mutation:server
+npm run test:mutation:client
 ```
 
 ## API Endpoints
