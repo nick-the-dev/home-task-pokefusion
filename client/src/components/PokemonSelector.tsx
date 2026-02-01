@@ -180,10 +180,9 @@ export function PokemonSelector({
         {selectedPokemon && (
           <div className="text-center space-y-2">
             <img
-              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${selectedPokemon.id}.png`}
+              src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedPokemon.id}.png`}
               alt={`${selectedPokemon.name} sprite`}
-              className="w-24 h-24 mx-auto"
-              style={{ imageRendering: "pixelated" }}
+              className="w-24 h-24 mx-auto object-contain"
               onError={handleImageError}
             />
             <p className="font-semibold capitalize">{selectedPokemon.name}</p>
