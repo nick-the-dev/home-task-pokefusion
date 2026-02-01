@@ -38,7 +38,7 @@ export function LoadingState({ message = "Generating..." }: LoadingStateProps) {
 
   return (
     <Card>
-      <CardContent className="p-8 text-center space-y-6">
+      <CardContent className="p-4 sm:p-6 md:p-8 text-center space-y-6">
         <div className="space-y-2">
           <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
             <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
@@ -52,7 +52,7 @@ export function LoadingState({ message = "Generating..." }: LoadingStateProps) {
           <p className="text-xs text-muted-foreground">{Math.round(progress)}%</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           <div className="space-y-2">
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-4 w-3/4 mx-auto" />

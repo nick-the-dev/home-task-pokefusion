@@ -27,7 +27,7 @@ export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
           ))}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         <div>
           <h4 className="text-sm font-semibold mb-2">Stats</h4>
           <div className="space-y-2 text-sm">
@@ -65,8 +65,8 @@ export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
 
         <div>
           <h4 className="text-sm font-semibold mb-1">Signature Move</h4>
-          <div className="p-2 bg-secondary rounded-md">
-            <div className="flex items-center gap-2">
+          <div className="p-2 sm:p-3 bg-secondary rounded-md">
+            <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <span className="font-medium">{child.signatureMove.name}</span>
               <Badge className={`${getTypeColor(child.signatureMove.type)} text-white text-xs`}>
                 {child.signatureMove.type}

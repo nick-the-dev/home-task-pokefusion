@@ -19,20 +19,20 @@ export function BattleVerdict({ judgment, child1, child2 }: BattleVerdictProps) 
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-4">
-            <div className={`text-lg ${judgment.winner === "child1" ? "font-bold" : "text-muted-foreground"}`}>
+          <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <div className={`text-base sm:text-lg ${judgment.winner === "child1" ? "font-bold" : "text-muted-foreground"}`}>
               {child1.name}
             </div>
-            <span className="text-2xl font-bold text-muted-foreground">VS</span>
-            <div className={`text-lg ${judgment.winner === "child2" ? "font-bold" : "text-muted-foreground"}`}>
+            <span className="text-xl sm:text-2xl font-bold text-muted-foreground">VS</span>
+            <div className={`text-base sm:text-lg ${judgment.winner === "child2" ? "font-bold" : "text-muted-foreground"}`}>
               {child2.name}
             </div>
           </div>
         </div>
 
-        <div className="bg-secondary p-4 rounded-lg text-center">
+        <div className="bg-secondary p-3 sm:p-4 rounded-lg text-center">
           <p className="text-sm text-muted-foreground mb-1">Predicted Winner</p>
-          <p className="text-2xl font-bold text-green-600">{winner.name}</p>
+          <p className="text-xl sm:text-2xl font-bold text-green-600">{winner.name}</p>
         </div>
 
         <div className="space-y-2">

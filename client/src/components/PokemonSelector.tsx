@@ -90,8 +90,8 @@ export function PokemonSelector({
   }, [handleSelect]);
 
   return (
-    <Card className="h-full">
-      <CardContent className="p-4 space-y-3">
+    <Card className="h-full overflow-hidden">
+      <CardContent className="p-2 sm:p-4 space-y-2 sm:space-y-3">
         <label id={labelId} htmlFor={buttonId} className="text-sm font-medium text-muted-foreground">
           {label}
         </label>
@@ -105,15 +105,17 @@ export function PokemonSelector({
               aria-expanded={open}
               aria-labelledby={labelId}
               disabled={disabled}
-              className="w-full justify-between"
+              className="w-full justify-between min-w-0"
             >
-              {selectedPokemon
-                ? `${formatPokemonId(selectedPokemon.id)} ${formatPokemonName(selectedPokemon.name)}`
-                : "Select Pokemon..."}
-              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              <span className="truncate">
+                {selectedPokemon
+                  ? `${formatPokemonId(selectedPokemon.id)} ${formatPokemonName(selectedPokemon.name)}`
+                  : "Select..."}
+              </span>
+              <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[220px] p-0">
+          <PopoverContent className="w-[200px] sm:w-[220px] p-0">
             <Command shouldFilter={false}>
               <CommandInput
                 placeholder="Search Pokemon..."
@@ -182,7 +184,7 @@ export function PokemonSelector({
             <img
               src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${selectedPokemon.id}.png`}
               alt={`${selectedPokemon.name} sprite`}
-              className="w-24 h-24 mx-auto object-contain"
+              className="w-20 h-20 sm:w-24 sm:h-24 mx-auto object-contain"
               onError={handleImageError}
             />
             <p className="font-semibold capitalize">{selectedPokemon.name}</p>

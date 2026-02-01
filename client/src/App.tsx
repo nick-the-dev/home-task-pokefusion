@@ -87,22 +87,22 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold">POKEFUSION</h1>
+        <div className="container mx-auto px-4 py-3 sm:py-4">
+          <h1 className="text-xl sm:text-2xl font-bold">POKEFUSION</h1>
           <p className="text-muted-foreground">Pokemon Breeding Battle Arena</p>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 space-y-8">
+      <main className="container mx-auto px-3 py-6 sm:px-4 sm:py-8 space-y-8">
         {/* Parent Selection */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Pair A */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Pair A</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <PokemonSelector
                   pokemon={pokemon}
                   selectedId={pairA.parent1}
@@ -127,7 +127,7 @@ function App() {
               <CardTitle className="text-lg">Pair B</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                 <PokemonSelector
                   pokemon={pokemon}
                   selectedId={pairB.parent1}
@@ -168,9 +168,9 @@ function App() {
         {/* Battle Results */}
         {battle && !battleLoading && (
           <div className="space-y-8">
-            <h2 className="text-xl font-bold text-center">Generated Offspring</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-center">Generated Offspring</h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <ChildCard
                 child={battle.children.child1}
                 label={`Child 1 (from ${battle.parents.pairA.parent1.name} & ${battle.parents.pairA.parent2.name})`}
