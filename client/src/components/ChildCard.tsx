@@ -1,6 +1,7 @@
 import type { GeneratedChild } from "@pokefusion/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { Progress } from "./ui/progress";
 
 interface ChildCardProps {
   child: GeneratedChild;
@@ -29,6 +30,14 @@ const typeColors: Record<string, string> = {
   fairy: "bg-pink-300",
 };
 
+const getStatColor = (value: number): string => {
+  if (value < 30) return "bg-red-500";
+  if (value < 50) return "bg-orange-400";
+  if (value < 70) return "bg-yellow-400";
+  if (value < 90) return "bg-lime-400";
+  return "bg-green-500";
+};
+
 export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
   return (
     <Card className={`h-full ${isWinner ? "ring-2 ring-green-500" : ""}`}>
@@ -49,31 +58,25 @@ export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
       <CardContent className="space-y-4">
         <div>
           <h4 className="text-sm font-semibold mb-2">Stats</h4>
-          <div className="grid grid-cols-2 gap-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">HP:</span>
-              <span>{child.stats.hp}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">ATK:</span>
-              <span>{child.stats.attack}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">DEF:</span>
-              <span>{child.stats.defense}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Sp.Atk:</span>
-              <span>{child.stats.specialAttack}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Sp.Def:</span>
-              <span>{child.stats.specialDefense}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Speed:</span>
-              <span>{child.stats.speed}</span>
-            </div>
+          <div className="space-y-2 text-sm">
+            {[
+              { label: "HP", value: child.stats.hp },
+              { label: "ATK", value: child.stats.attack },
+              { label: "DEF", value: child.stats.defense },
+              { label: "Sp.Atk", value: child.stats.specialAttack },
+              { label: "Sp.Def", value: child.stats.specialDefense },
+              { label: "Speed", value: child.stats.speed },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex items-center gap-2">
+                <span className="text-muted-foreground w-12 text-xs">{label}</span>
+                <Progress
+                  value={value}
+                  className="h-2 flex-1"
+                  indicatorClassName={getStatColor(value)}
+                />
+                <span className="w-6 text-right text-xs">{value}</span>
+              </div>
+            ))}
           </div>
         </div>
 
