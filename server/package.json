@@ -11,6 +11,7 @@
     "test:mutation": "stryker run"
   },
   "dependencies": {
+    "@openrouter/sdk": "^0.5.1",
     "@pokefusion/shared": "*",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
