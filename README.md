@@ -80,6 +80,20 @@ npm run build
 cd server && npm start
 ```
 
+### Docker Deployment
+
+```bash
+# Build the Docker image
+docker build -t pokefusion .
+
+# Run the container
+docker run -p 3001:3001 \
+  -e OPENROUTER_API_KEY=your-key \
+  -e GENERATOR_MODEL=nvidia/nemotron-3-nano-30b-a3b:free \
+  -e JUDGE_MODEL=tngtech/deepseek-r1t2-chimera:free \
+  pokefusion
+```
+
 ## Code Quality
 
 ```bash
@@ -125,7 +139,7 @@ npm run test:mutation:client
 - **Security Headers**: Helmet.js for XSS protection, Content-Type sniffing, etc.
 - **CORS Configuration**: Configurable origins for production
 - **Input Validation**: Zod schemas validate all API inputs
-- **Request Timeouts**: PokeAPI (10s) and LLM (30s) calls have timeouts
+- **Request Timeouts**: PokeAPI (10s) and LLM (60s) calls have timeouts
 - **Exponential Backoff**: LLM calls retry with increasing delays on failure
 
 ## API Endpoints
