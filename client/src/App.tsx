@@ -52,9 +52,36 @@ function App() {
     await runBattle(request);
   };
 
-  const handleReroll = () => {
+  const handleReroll = async () => {
+    const getRandomId = () => Math.floor(Math.random() * pokemon.length) + 1;
+
+    // Calculate new IDs for unlocked parents
+    const newPairA = {
+      parent1: pairA.parent1.locked ? pairA.parent1 : { ...pairA.parent1, id: getRandomId() },
+      parent2: pairA.parent2.locked ? pairA.parent2 : { ...pairA.parent2, id: getRandomId() },
+    };
+    const newPairB = {
+      parent1: pairB.parent1.locked ? pairB.parent1 : { ...pairB.parent1, id: getRandomId() },
+      parent2: pairB.parent2.locked ? pairB.parent2 : { ...pairB.parent2, id: getRandomId() },
+    };
+
+    // Update UI state
+    setPairA(newPairA);
+    setPairB(newPairB);
+
+    // Reset and run battle with the new IDs directly
     reset();
-    handleBattle();
+    const request: BattleRequest = {
+      pairA: {
+        parent1Id: newPairA.parent1.id!,
+        parent2Id: newPairA.parent2.id!,
+      },
+      pairB: {
+        parent1Id: newPairB.parent1.id!,
+        parent2Id: newPairB.parent2.id!,
+      },
+    };
+    await runBattle(request);
   };
 
   if (pokemonLoading) {
