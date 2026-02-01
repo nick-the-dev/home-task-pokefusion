@@ -3,6 +3,13 @@ import { Progress } from "./ui/progress";
 import { Skeleton } from "./ui/skeleton";
 import { useState, useEffect } from "react";
 
+const STAGES = [
+  "Analyzing parent Pokemon...",
+  "Creating Pair A offspring...",
+  "Creating Pair B offspring...",
+  "Judging battle outcome...",
+] as const;
+
 interface LoadingStateProps {
   message?: string;
 }
@@ -10,13 +17,6 @@ interface LoadingStateProps {
 export function LoadingState({ message = "Generating..." }: LoadingStateProps) {
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState(0);
-
-  const stages = [
-    "Analyzing parent Pokemon...",
-    "Creating Pair A offspring...",
-    "Creating Pair B offspring...",
-    "Judging battle outcome...",
-  ];
 
   useEffect(() => {
     const progressInterval = setInterval(() => {
@@ -27,7 +27,7 @@ export function LoadingState({ message = "Generating..." }: LoadingStateProps) {
     }, 500);
 
     const stageInterval = setInterval(() => {
-      setStage((prev) => (prev + 1) % stages.length);
+      setStage((prev) => (prev + 1) % STAGES.length);
     }, 3000);
 
     return () => {
@@ -44,7 +44,7 @@ export function LoadingState({ message = "Generating..." }: LoadingStateProps) {
             <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
           </div>
           <p className="text-lg font-semibold">{message}</p>
-          <p className="text-sm text-muted-foreground">{stages[stage]}</p>
+          <p className="text-sm text-muted-foreground">{STAGES[stage]}</p>
         </div>
 
         <div className="max-w-md mx-auto space-y-2">

@@ -80,6 +80,19 @@ npm run build
 cd server && npm start
 ```
 
+## Code Quality
+
+```bash
+# Lint the codebase
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
+
+# Type check all workspaces
+npm run typecheck
+```
+
 ## Running Tests
 
 ```bash
@@ -105,6 +118,15 @@ npm run test:mutation
 npm run test:mutation:server
 npm run test:mutation:client
 ```
+
+## Security Features
+
+- **Rate Limiting**: 100 requests per 15 minutes per IP
+- **Security Headers**: Helmet.js for XSS protection, Content-Type sniffing, etc.
+- **CORS Configuration**: Configurable origins for production
+- **Input Validation**: Zod schemas validate all API inputs
+- **Request Timeouts**: PokeAPI (10s) and LLM (30s) calls have timeouts
+- **Exponential Backoff**: LLM calls retry with increasing delays on failure
 
 ## API Endpoints
 
@@ -170,31 +192,6 @@ npm run test:mutation:client
 ### Mutation Testing
 - Server: ~29% mutation score (focus on core logic)
 - Client: ~15% mutation score (CSS mutations not prioritized)
-
-## Reflection Notes
-
-### What Would Be Improved With More Time
-
-1. **E2E Testing**: Add Playwright or Cypress tests for full user flow testing
-2. **Higher Mutation Coverage**: Focus on killing more mutants in edge cases
-3. **Error Handling UI**: Better error states and retry mechanisms in the UI
-4. **Caching**: Add Redis caching for PokéAPI responses
-5. **Rate Limiting**: Implement proper rate limiting for the OpenRouter API
-6. **Streaming**: Stream LLM responses for better UX during generation
-7. **Accessibility**: Full WCAG compliance audit
-8. **Mobile Optimization**: Better responsive design for mobile devices
-
-### AI Tool Usage
-
-- **Claude Code**: Used for initial project scaffolding, component creation, and test writing
-- **Effectiveness**: High - AI significantly accelerated development, especially for boilerplate code and test setup. The structured approach with Zod schemas made type safety seamless across the stack.
-
-### Key Design Decisions
-
-1. **Monorepo with npm workspaces**: Enables shared types between frontend and backend
-2. **Zod for validation**: Single source of truth for types and runtime validation
-3. **StrykerJS**: Ensures test quality through mutation testing
-4. **shadcn/ui**: Accessible, customizable components with Tailwind
 
 ## License
 

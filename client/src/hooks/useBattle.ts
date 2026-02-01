@@ -23,7 +23,8 @@ export function useBattle(): UseBattleResult {
       setBattle(response);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(`${err.message}${err.details ? `: ${err.details}` : ""}`);
+        const details = err.details ?? "";
+        setError(details ? `${err.message}: ${details}` : err.message);
       } else {
         setError(err instanceof Error ? err.message : "Battle failed");
       }

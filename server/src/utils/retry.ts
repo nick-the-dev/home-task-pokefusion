@@ -24,8 +24,10 @@ export async function withRetry<T>(
       lastError = error instanceof Error ? error : new Error(String(error));
 
       if (attempt < maxRetries - 1) {
-        logRetry(attempt + 1, maxRetries, lastError.message, delayMs);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        // Exponential backoff: delay doubles with each attempt
+        const backoffDelay = delayMs * Math.pow(2, attempt);
+        logRetry(attempt + 1, maxRetries, lastError.message, backoffDelay);
+        await new Promise((resolve) => setTimeout(resolve, backoffDelay));
       } else {
         logRetry(attempt + 1, maxRetries, lastError.message);
       }

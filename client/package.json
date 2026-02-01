@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@pokefusion/shared": "*",

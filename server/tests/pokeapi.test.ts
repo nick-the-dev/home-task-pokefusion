@@ -268,10 +268,12 @@ describe("PokéAPI Service", () => {
       await fetchPokemonList(20, 40);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("limit=20")
+        expect.stringContaining("limit=20"),
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
       );
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("offset=40")
+        expect.stringContaining("offset=40"),
+        expect.objectContaining({ signal: expect.any(AbortSignal) })
       );
     });
 

@@ -2,41 +2,13 @@ import type { GeneratedChild } from "@pokefusion/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Progress } from "./ui/progress";
+import { getTypeColor, getStatColor } from "@/lib/typeColors";
 
 interface ChildCardProps {
   child: GeneratedChild;
   label: string;
   isWinner?: boolean;
 }
-
-const typeColors: Record<string, string> = {
-  normal: "bg-gray-400",
-  fire: "bg-orange-500",
-  water: "bg-blue-500",
-  electric: "bg-yellow-400",
-  grass: "bg-green-500",
-  ice: "bg-cyan-300",
-  fighting: "bg-red-700",
-  poison: "bg-purple-500",
-  ground: "bg-amber-600",
-  flying: "bg-indigo-300",
-  psychic: "bg-pink-500",
-  bug: "bg-lime-500",
-  rock: "bg-stone-500",
-  ghost: "bg-purple-700",
-  dragon: "bg-violet-600",
-  dark: "bg-gray-700",
-  steel: "bg-slate-400",
-  fairy: "bg-pink-300",
-};
-
-const getStatColor = (value: number): string => {
-  if (value < 30) return "bg-red-500";
-  if (value < 50) return "bg-orange-400";
-  if (value < 70) return "bg-yellow-400";
-  if (value < 90) return "bg-lime-400";
-  return "bg-green-500";
-};
 
 export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
   return (
@@ -49,7 +21,7 @@ export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
         <CardTitle className="text-xl">{child.name}</CardTitle>
         <div className="flex gap-1">
           {child.types.map((type) => (
-            <Badge key={type} className={`${typeColors[type.toLowerCase()] || "bg-gray-500"} text-white text-xs`}>
+            <Badge key={type} className={`${getTypeColor(type)} text-white text-xs`}>
               {type}
             </Badge>
           ))}
@@ -96,7 +68,7 @@ export function ChildCard({ child, label, isWinner = false }: ChildCardProps) {
           <div className="p-2 bg-secondary rounded-md">
             <div className="flex items-center gap-2">
               <span className="font-medium">{child.signatureMove.name}</span>
-              <Badge className={`${typeColors[child.signatureMove.type.toLowerCase()] || "bg-gray-500"} text-white text-xs`}>
+              <Badge className={`${getTypeColor(child.signatureMove.type)} text-white text-xs`}>
                 {child.signatureMove.type}
               </Badge>
               <span className="text-xs text-muted-foreground">Power: {child.signatureMove.power}</span>

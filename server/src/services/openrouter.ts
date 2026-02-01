@@ -2,28 +2,32 @@ import { z } from "zod";
 import { OpenRouter } from "@openrouter/sdk";
 import { withRetry, validateWithSchema } from "../utils/retry.js";
 import { logStart, logEnd, logInfo, logError } from "../utils/logger.js";
+import { env } from "../env.js";
 
-// Models - required via environment variables
-const GENERATOR_MODEL = process.env.GENERATOR_MODEL;
-const JUDGE_MODEL = process.env.JUDGE_MODEL;
+const LLM_TIMEOUT_MS = 30000; // 30 second timeout for LLM calls
 
-if (!GENERATOR_MODEL || !JUDGE_MODEL) {
-  throw new Error("GENERATOR_MODEL and JUDGE_MODEL environment variables must be set");
+// Singleton OpenRouter client
+let clientInstance: OpenRouter | null = null;
+
+function getClient(): OpenRouter {
+  if (!clientInstance) {
+    clientInstance = new OpenRouter({
+      apiKey: env.OPENROUTER_API_KEY,
+    });
+  }
+  return clientInstance;
 }
 
-const validatedGeneratorModel: string = GENERATOR_MODEL;
-const validatedJudgeModel: string = JUDGE_MODEL;
-
-// Initialize OpenRouter client
-function getClient(): OpenRouter {
-  const apiKey = process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    throw new Error("OPENROUTER_API_KEY environment variable is not set");
-  }
-
-  return new OpenRouter({
-    apiKey,
-  });
+/**
+ * Wraps a promise with a timeout
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operation: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${operation} timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
 }
 
 async function callOpenRouter(prompt: string, model: string): Promise<unknown> {
@@ -33,13 +37,17 @@ async function callOpenRouter(prompt: string, model: string): Promise<unknown> {
   try {
     const client = getClient();
 
-    const response = await client.chat.send({
-      model,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
-      maxTokens: 4000,
-      responseFormat: { type: "json_object" },
-    });
+    const response = await withTimeout(
+      client.chat.send({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        maxTokens: 4000,
+        responseFormat: { type: "json_object" },
+      }),
+      LLM_TIMEOUT_MS,
+      `LLM call to ${model}`
+    );
 
     const content = response.choices?.[0]?.message?.content;
     if (!content || typeof content !== "string") {
@@ -47,7 +55,12 @@ async function callOpenRouter(prompt: string, model: string): Promise<unknown> {
     }
 
     // With responseFormat: json_object, the content IS valid JSON
-    const parsed = JSON.parse(content);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      throw new Error(`Failed to parse LLM response as JSON: ${content.substring(0, 100)}...`);
+    }
 
     logEnd("LLM", `callOpenRouter(${model})`, startTime, `response: ${content.length} chars`);
     return parsed;
@@ -80,14 +93,14 @@ export async function generateChild<T>(
   prompt: string,
   schema: z.ZodSchema<T>
 ): Promise<T> {
-  logInfo("LLM", `Using generator model: ${validatedGeneratorModel}`);
-  return callLLMWithRetry(prompt, schema, validatedGeneratorModel);
+  logInfo("LLM", `Using generator model: ${env.GENERATOR_MODEL}`);
+  return callLLMWithRetry(prompt, schema, env.GENERATOR_MODEL);
 }
 
 export async function judgeMatch<T>(
   prompt: string,
   schema: z.ZodSchema<T>
 ): Promise<T> {
-  logInfo("LLM", `Using judge model: ${validatedJudgeModel}`);
-  return callLLMWithRetry(prompt, schema, validatedJudgeModel);
+  logInfo("LLM", `Using judge model: ${env.JUDGE_MODEL}`);
+  return callLLMWithRetry(prompt, schema, env.JUDGE_MODEL);
 }

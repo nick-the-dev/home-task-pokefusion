@@ -18,10 +18,17 @@
     "test:mutation": "npm run test:mutation -w server && npm run test:mutation -w client",
     "test:mutation:server": "npm run test:mutation -w server",
     "test:mutation:client": "npm run test:mutation -w client",
-    "test:all": "npm run test -w server && npm run test -w client"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
     "concurrently": "^8.2.2",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "typescript": "^5.3.3"
   }
 }

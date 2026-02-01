@@ -4,7 +4,6 @@ import {
   type BattleRequest,
   type BattleResponse,
   type PokemonListResponse,
-  type PokemonParent,
 } from "@pokefusion/shared";
 import { fetchPokemonById, fetchPokemonList } from "../services/pokeapi.js";
 import { generateChildFromPair } from "../services/generator.js";
@@ -41,15 +40,22 @@ apiRouter.get("/pokemon", async (_req: Request, res: Response) => {
   }
 });
 
+// Valid Pokemon ID range (Gen 1-9 as of 2024)
+const MIN_POKEMON_ID = 1;
+const MAX_POKEMON_ID = 1025;
+
 // GET /api/pokemon/:id - Get single Pokemon details
 apiRouter.get("/pokemon/:id", async (req: Request, res: Response) => {
   const id = parseInt(req.params.id, 10);
   const startTime = logStart("API", `GET /api/pokemon/${id}`);
 
   try {
-    if (isNaN(id)) {
-      logError("API", `Invalid Pokemon ID: ${req.params.id}`);
-      res.status(400).json({ error: "Invalid Pokemon ID" });
+    if (isNaN(id) || id < MIN_POKEMON_ID || id > MAX_POKEMON_ID) {
+      logError("API", `Invalid Pokemon ID: ${req.params.id} (must be ${MIN_POKEMON_ID}-${MAX_POKEMON_ID})`);
+      res.status(400).json({
+        error: "Invalid Pokemon ID",
+        details: `ID must be between ${MIN_POKEMON_ID} and ${MAX_POKEMON_ID}`,
+      });
       return;
     }
 
@@ -68,7 +74,11 @@ apiRouter.get("/pokemon/:id", async (req: Request, res: Response) => {
 // POST /api/battle - Generate children and judge battle
 apiRouter.post("/battle", async (req: Request, res: Response) => {
   const startTime = logStart("API", "POST /api/battle");
-  logInfo("API", "Request payload:", req.body);
+  // Log only IDs for security (avoid logging full payload)
+  logInfo("API", "Battle request IDs:", {
+    pairA: { parent1Id: req.body?.pairA?.parent1Id, parent2Id: req.body?.pairA?.parent2Id },
+    pairB: { parent1Id: req.body?.pairB?.parent1Id, parent2Id: req.body?.pairB?.parent2Id },
+  });
 
   try {
     // Validate request body

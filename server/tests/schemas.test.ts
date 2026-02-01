@@ -150,12 +150,52 @@ describe("PokemonParentSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects invalid sprite URL", () => {
+  it("accepts any string for sprite (including empty)", () => {
+    // Sprite can be any string - empty for missing sprites, or URL for available ones
+    const withEmptySprite = { ...validPokemon, sprite: "" };
+    const withTextSprite = { ...validPokemon, sprite: "not-a-url" };
+
+    expect(PokemonParentSchema.safeParse(withEmptySprite).success).toBe(true);
+    expect(PokemonParentSchema.safeParse(withTextSprite).success).toBe(true);
+  });
+
+  it("rejects stats out of range (hp > 255)", () => {
     const invalidPokemon = {
       ...validPokemon,
-      sprite: "not-a-url",
+      stats: { ...validPokemon.stats, hp: 300 },
     };
     const result = PokemonParentSchema.safeParse(invalidPokemon);
     expect(result.success).toBe(false);
+  });
+
+  it("rejects stats out of range (speed < 1)", () => {
+    const invalidPokemon = {
+      ...validPokemon,
+      stats: { ...validPokemon.stats, speed: 0 },
+    };
+    const result = PokemonParentSchema.safeParse(invalidPokemon);
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid Pokemon types", () => {
+    const invalidPokemon = {
+      ...validPokemon,
+      types: ["invalid-type"],
+    };
+    const result = PokemonParentSchema.safeParse(invalidPokemon);
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all valid Pokemon types", () => {
+    const validTypes = [
+      "normal", "fire", "water", "electric", "grass", "ice",
+      "fighting", "poison", "ground", "flying", "psychic", "bug",
+      "rock", "ghost", "dragon", "dark", "steel", "fairy",
+    ];
+
+    validTypes.forEach((type) => {
+      const pokemonWithType = { ...validPokemon, types: [type] };
+      expect(PokemonParentSchema.safeParse(pokemonWithType).success).toBe(true);
+    });
   });
 });
