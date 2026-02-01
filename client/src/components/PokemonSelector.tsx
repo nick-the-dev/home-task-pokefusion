@@ -1,14 +1,11 @@
 import type { PokemonListItem } from "@pokefusion/shared";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Checkbox } from "./ui/checkbox";
 import { Card, CardContent } from "./ui/card";
 
 interface PokemonSelectorProps {
   pokemon: PokemonListItem[];
   selectedId: number | null;
-  locked: boolean;
   onSelect: (id: number) => void;
-  onLockChange: (locked: boolean) => void;
   label: string;
   disabled?: boolean;
 }
@@ -16,9 +13,7 @@ interface PokemonSelectorProps {
 export function PokemonSelector({
   pokemon,
   selectedId,
-  locked,
   onSelect,
-  onLockChange,
   label,
   disabled = false,
 }: PokemonSelectorProps) {
@@ -27,20 +22,12 @@ export function PokemonSelector({
   return (
     <Card className="h-full">
       <CardContent className="p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">{label}</span>
-          <div className="flex items-center gap-2">
-            <Checkbox id={`lock-${label}`} checked={locked} onCheckedChange={(c) => onLockChange(c === true)} />
-            <label htmlFor={`lock-${label}`} className="text-sm text-muted-foreground cursor-pointer">
-              Lock
-            </label>
-          </div>
-        </div>
+        <span className="text-sm font-medium text-muted-foreground">{label}</span>
 
         <Select
           value={selectedId?.toString() || ""}
           onValueChange={(v) => onSelect(parseInt(v, 10))}
-          disabled={disabled || locked}
+          disabled={disabled}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select Pokemon" />

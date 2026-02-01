@@ -10,42 +10,35 @@ import { Button } from "./components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "./components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 
-interface ParentSelection {
-  id: number | null;
-  locked: boolean;
+interface PairSelection {
+  parent1: number | null;
+  parent2: number | null;
 }
 
 function App() {
   const { pokemon, loading: pokemonLoading, error: pokemonError } = usePokemon();
   const { battle, loading: battleLoading, error: battleError, runBattle, reset } = useBattle();
 
-  const [pairA, setPairA] = useState<{ parent1: ParentSelection; parent2: ParentSelection }>({
-    parent1: { id: null, locked: false },
-    parent2: { id: null, locked: false },
-  });
-
-  const [pairB, setPairB] = useState<{ parent1: ParentSelection; parent2: ParentSelection }>({
-    parent1: { id: null, locked: false },
-    parent2: { id: null, locked: false },
-  });
+  const [pairA, setPairA] = useState<PairSelection>({ parent1: null, parent2: null });
+  const [pairB, setPairB] = useState<PairSelection>({ parent1: null, parent2: null });
 
   const canBattle =
-    pairA.parent1.id !== null &&
-    pairA.parent2.id !== null &&
-    pairB.parent1.id !== null &&
-    pairB.parent2.id !== null;
+    pairA.parent1 !== null &&
+    pairA.parent2 !== null &&
+    pairB.parent1 !== null &&
+    pairB.parent2 !== null;
 
   const handleBattle = async () => {
     if (!canBattle) return;
 
     const request: BattleRequest = {
       pairA: {
-        parent1Id: pairA.parent1.id!,
-        parent2Id: pairA.parent2.id!,
+        parent1Id: pairA.parent1!,
+        parent2Id: pairA.parent2!,
       },
       pairB: {
-        parent1Id: pairB.parent1.id!,
-        parent2Id: pairB.parent2.id!,
+        parent1Id: pairB.parent1!,
+        parent2Id: pairB.parent2!,
       },
     };
 
@@ -55,30 +48,21 @@ function App() {
   const handleReroll = async () => {
     const getRandomId = () => Math.floor(Math.random() * pokemon.length) + 1;
 
-    // Calculate new IDs for unlocked parents
-    const newPairA = {
-      parent1: pairA.parent1.locked ? pairA.parent1 : { ...pairA.parent1, id: getRandomId() },
-      parent2: pairA.parent2.locked ? pairA.parent2 : { ...pairA.parent2, id: getRandomId() },
-    };
-    const newPairB = {
-      parent1: pairB.parent1.locked ? pairB.parent1 : { ...pairB.parent1, id: getRandomId() },
-      parent2: pairB.parent2.locked ? pairB.parent2 : { ...pairB.parent2, id: getRandomId() },
-    };
+    const newPairA = { parent1: getRandomId(), parent2: getRandomId() };
+    const newPairB = { parent1: getRandomId(), parent2: getRandomId() };
 
-    // Update UI state
     setPairA(newPairA);
     setPairB(newPairB);
 
-    // Reset and run battle with the new IDs directly
     reset();
     const request: BattleRequest = {
       pairA: {
-        parent1Id: newPairA.parent1.id!,
-        parent2Id: newPairA.parent2.id!,
+        parent1Id: newPairA.parent1,
+        parent2Id: newPairA.parent2,
       },
       pairB: {
-        parent1Id: newPairB.parent1.id!,
-        parent2Id: newPairB.parent2.id!,
+        parent1Id: newPairB.parent1,
+        parent2Id: newPairB.parent2,
       },
     };
     await runBattle(request);
@@ -89,7 +73,7 @@ function App() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto rounded-full border-4 border-primary border-t-transparent animate-spin" />
-          <p className="text-lg">Loading Pokemon...</p>
+          <p className="text-lg">Loading Pokefusion...</p>
         </div>
       </div>
     );
@@ -127,23 +111,15 @@ function App() {
               <div className="grid grid-cols-2 gap-4">
                 <PokemonSelector
                   pokemon={pokemon}
-                  selectedId={pairA.parent1.id}
-                  locked={pairA.parent1.locked}
-                  onSelect={(id) => setPairA((prev) => ({ ...prev, parent1: { ...prev.parent1, id } }))}
-                  onLockChange={(locked) =>
-                    setPairA((prev) => ({ ...prev, parent1: { ...prev.parent1, locked } }))
-                  }
+                  selectedId={pairA.parent1}
+                  onSelect={(id) => setPairA((prev) => ({ ...prev, parent1: id }))}
                   label="Parent 1"
                   disabled={battleLoading}
                 />
                 <PokemonSelector
                   pokemon={pokemon}
-                  selectedId={pairA.parent2.id}
-                  locked={pairA.parent2.locked}
-                  onSelect={(id) => setPairA((prev) => ({ ...prev, parent2: { ...prev.parent2, id } }))}
-                  onLockChange={(locked) =>
-                    setPairA((prev) => ({ ...prev, parent2: { ...prev.parent2, locked } }))
-                  }
+                  selectedId={pairA.parent2}
+                  onSelect={(id) => setPairA((prev) => ({ ...prev, parent2: id }))}
                   label="Parent 2"
                   disabled={battleLoading}
                 />
@@ -160,23 +136,15 @@ function App() {
               <div className="grid grid-cols-2 gap-4">
                 <PokemonSelector
                   pokemon={pokemon}
-                  selectedId={pairB.parent1.id}
-                  locked={pairB.parent1.locked}
-                  onSelect={(id) => setPairB((prev) => ({ ...prev, parent1: { ...prev.parent1, id } }))}
-                  onLockChange={(locked) =>
-                    setPairB((prev) => ({ ...prev, parent1: { ...prev.parent1, locked } }))
-                  }
+                  selectedId={pairB.parent1}
+                  onSelect={(id) => setPairB((prev) => ({ ...prev, parent1: id }))}
                   label="Parent 3"
                   disabled={battleLoading}
                 />
                 <PokemonSelector
                   pokemon={pokemon}
-                  selectedId={pairB.parent2.id}
-                  locked={pairB.parent2.locked}
-                  onSelect={(id) => setPairB((prev) => ({ ...prev, parent2: { ...prev.parent2, id } }))}
-                  onLockChange={(locked) =>
-                    setPairB((prev) => ({ ...prev, parent2: { ...prev.parent2, locked } }))
-                  }
+                  selectedId={pairB.parent2}
+                  onSelect={(id) => setPairB((prev) => ({ ...prev, parent2: id }))}
                   label="Parent 4"
                   disabled={battleLoading}
                 />
