@@ -1,0 +1,14 @@
+node_modules
+*/node_modules
+.git
+.env
+.env.local
+*.log
+npm-debug.log*
+.DS_Store
+coverage
+*/coverage
+.stryker-tmp
+*/.stryker-tmp
+dist
+*/dist

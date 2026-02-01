@@ -1,11 +1,17 @@
 // Load env vars first, before any other imports
 import "./env.js";
 
+import path from "path";
+import { fileURLToPath } from "url";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { apiRouter } from "./routes/api.js";
+import { loadTypeMatchups } from "./services/typeMatchups.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -44,23 +50,52 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-// Graceful shutdown handling
-const server = app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// Serve static files in production (monolith deployment)
+if (isProduction) {
+  const clientDistPath = path.join(__dirname, "../../client/dist");
+  app.use(express.static(clientDistPath));
 
-process.on("SIGTERM", () => {
-  console.log("SIGTERM received, shutting down gracefully");
-  server.close(() => {
-    console.log("Server closed");
-    process.exit(0);
+  // SPA fallback - serve index.html for all non-API routes
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(clientDistPath, "index.html"));
   });
-});
+}
 
-process.on("SIGINT", () => {
-  console.log("SIGINT received, shutting down gracefully");
-  server.close(() => {
-    console.log("Server closed");
-    process.exit(0);
+// Initialize services and start server
+async function startServer() {
+  // Pre-load type matchups for battle calculations
+  try {
+    await loadTypeMatchups();
+    console.log("Type matchups loaded successfully");
+  } catch (error) {
+    console.warn("Failed to load type matchups, battles will use neutral effectiveness:", error);
+  }
+
+  // Start the server
+  const server = app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+
+  return server;
+}
+
+// Start server and set up graceful shutdown
+const serverPromise = startServer();
+
+serverPromise.then((server) => {
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM received, shutting down gracefully");
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
+  });
+
+  process.on("SIGINT", () => {
+    console.log("SIGINT received, shutting down gracefully");
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
   });
 });
