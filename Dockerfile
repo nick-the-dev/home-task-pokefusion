@@ -12,11 +12,10 @@ COPY client/package*.json ./client/
 # Install dependencies
 RUN npm ci
 
-# Copy source code
+# Copy source code (each workspace has its own tsconfig.json)
 COPY shared/ ./shared/
 COPY server/ ./server/
 COPY client/ ./client/
-COPY tsconfig.json ./
 
 # Build all packages (shared must be built first)
 RUN npm run build -w shared && \
