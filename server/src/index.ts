@@ -17,8 +17,22 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === "production";
 
-// Security headers
-app.use(helmet());
+// Security headers - configure CSP to allow Vite-built assets
+app.use(
+  helmet({
+    contentSecurityPolicy: isProduction
+      ? {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https://raw.githubusercontent.com"],
+            connectSrc: ["'self'"],
+          },
+        }
+      : false, // Disable CSP in development
+  })
+);
 
 // CORS configuration - restrict origins in production
 const corsOptions = {
