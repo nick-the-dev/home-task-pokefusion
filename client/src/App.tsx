@@ -179,12 +179,12 @@ function App() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ChildCard
                 child={battle.children.child1}
-                label="Child 1 (from Pair A)"
+                label={`Child 1 (from ${battle.parents.pairA.parent1.name} & ${battle.parents.pairA.parent2.name})`}
                 isWinner={battle.battle.winner === "child1"}
               />
               <ChildCard
                 child={battle.children.child2}
-                label="Child 2 (from Pair B)"
+                label={`Child 2 (from ${battle.parents.pairB.parent1.name} & ${battle.parents.pairB.parent2.name})`}
                 isWinner={battle.battle.winner === "child2"}
               />
             </div>
