@@ -3,10 +3,13 @@ import { withRetry, validateWithSchema } from "../utils/retry.js";
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-// Models - configurable via environment variables
-// User specified: generator = openai/gpt-4o-mini-2024-07-18, judge = moonshotai/kimi-k2:free
-const GENERATOR_MODEL = process.env.GENERATOR_MODEL || "openai/gpt-4o-mini-2024-07-18";
-const JUDGE_MODEL = process.env.JUDGE_MODEL || "moonshotai/kimi-k2:free";
+// Models - required via environment variables
+const GENERATOR_MODEL = process.env.GENERATOR_MODEL;
+const JUDGE_MODEL = process.env.JUDGE_MODEL;
+
+if (!GENERATOR_MODEL || !JUDGE_MODEL) {
+  throw new Error("GENERATOR_MODEL and JUDGE_MODEL environment variables must be set");
+}
 
 interface OpenRouterResponse {
   choices: Array<{
