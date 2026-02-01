@@ -4,7 +4,7 @@ import { withRetry, validateWithSchema } from "../utils/retry.js";
 import { logStart, logEnd, logInfo, logError } from "../utils/logger.js";
 import { env } from "../env.js";
 
-const LLM_TIMEOUT_MS = 30000; // 30 second timeout for LLM calls
+const LLM_TIMEOUT_MS = 60000; // 60 second timeout for LLM calls (free models can be slow)
 
 // Singleton OpenRouter client
 let clientInstance: OpenRouter | null = null;
