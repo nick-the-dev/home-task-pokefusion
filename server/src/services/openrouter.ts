@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { OpenRouter } from "@openrouter/sdk";
 import { withRetry, validateWithSchema } from "../utils/retry.js";
+import { logStart, logEnd, logInfo, logError } from "../utils/logger.js";
 
 // Models - required via environment variables
 const GENERATOR_MODEL = process.env.GENERATOR_MODEL;
@@ -26,23 +27,34 @@ function getClient(): OpenRouter {
 }
 
 async function callOpenRouter(prompt: string, model: string): Promise<unknown> {
-  const client = getClient();
+  const promptPreview = prompt.length > 100 ? `${prompt.substring(0, 100)}...` : prompt;
+  const startTime = logStart("LLM", `callOpenRouter(${model})`, { promptPreview });
 
-  const response = await client.chat.send({
-    model,
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-    maxTokens: 4000,
-    responseFormat: { type: "json_object" },
-  });
+  try {
+    const client = getClient();
 
-  const content = response.choices?.[0]?.message?.content;
-  if (!content || typeof content !== "string") {
-    throw new Error("No content in response");
+    const response = await client.chat.send({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+      maxTokens: 4000,
+      responseFormat: { type: "json_object" },
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+    if (!content || typeof content !== "string") {
+      throw new Error("No content in response");
+    }
+
+    // With responseFormat: json_object, the content IS valid JSON
+    const parsed = JSON.parse(content);
+
+    logEnd("LLM", `callOpenRouter(${model})`, startTime, `response: ${content.length} chars`);
+    return parsed;
+  } catch (error) {
+    logError("LLM", `callOpenRouter(${model}) failed`, error);
+    throw error;
   }
-
-  // With responseFormat: json_object, the content IS valid JSON
-  return JSON.parse(content);
 }
 
 export async function callLLMWithRetry<T>(
@@ -51,10 +63,14 @@ export async function callLLMWithRetry<T>(
   model: string,
   maxRetries: number = 3
 ): Promise<T> {
+  logInfo("LLM", `callLLMWithRetry starting (model: ${model}, maxRetries: ${maxRetries})`);
+
   return withRetry(
     async () => {
       const parsed = await callOpenRouter(prompt, model);
-      return validateWithSchema(parsed, schema);
+      const validated = validateWithSchema(parsed, schema);
+      logInfo("LLM", "Schema validation passed");
+      return validated;
     },
     { maxRetries, delayMs: 1000 }
   );
@@ -64,6 +80,7 @@ export async function generateChild<T>(
   prompt: string,
   schema: z.ZodSchema<T>
 ): Promise<T> {
+  logInfo("LLM", `Using generator model: ${validatedGeneratorModel}`);
   return callLLMWithRetry(prompt, schema, validatedGeneratorModel);
 }
 
@@ -71,5 +88,6 @@ export async function judgeMatch<T>(
   prompt: string,
   schema: z.ZodSchema<T>
 ): Promise<T> {
+  logInfo("LLM", `Using judge model: ${validatedJudgeModel}`);
   return callLLMWithRetry(prompt, schema, validatedJudgeModel);
 }

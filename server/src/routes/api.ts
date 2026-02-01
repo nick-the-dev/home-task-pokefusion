@@ -9,13 +9,16 @@ import {
 import { fetchPokemonById, fetchPokemonList } from "../services/pokeapi.js";
 import { generateChildFromPair } from "../services/generator.js";
 import { judgeBattle } from "../services/judge.js";
+import { logStart, logEnd, logPhase, logInfo, logError } from "../utils/logger.js";
 
 export const apiRouter = Router();
 
 // GET /api/pokemon - List available Pokemon
 apiRouter.get("/pokemon", async (_req: Request, res: Response) => {
+  const startTime = logStart("API", "GET /api/pokemon", { limit: 5000, offset: 0 });
+
   try {
-    const limit = 151; // Gen 1 Pokemon
+    const limit = 5000;
     const offset = 0;
 
     const { pokemon, total } = await fetchPokemonList(limit, offset);
@@ -27,9 +30,10 @@ apiRouter.get("/pokemon", async (_req: Request, res: Response) => {
       offset,
     };
 
+    logEnd("API", "GET /api/pokemon", startTime, `${pokemon.length} pokemon returned`);
     res.json(response);
   } catch (error) {
-    console.error("Error fetching Pokemon list:", error);
+    logError("API", "GET /api/pokemon failed", error);
     res.status(500).json({
       error: "Failed to fetch Pokemon list",
       details: error instanceof Error ? error.message : String(error),
@@ -39,18 +43,21 @@ apiRouter.get("/pokemon", async (_req: Request, res: Response) => {
 
 // GET /api/pokemon/:id - Get single Pokemon details
 apiRouter.get("/pokemon/:id", async (req: Request, res: Response) => {
-  try {
-    const id = parseInt(req.params.id, 10);
+  const id = parseInt(req.params.id, 10);
+  const startTime = logStart("API", `GET /api/pokemon/${id}`);
 
+  try {
     if (isNaN(id)) {
+      logError("API", `Invalid Pokemon ID: ${req.params.id}`);
       res.status(400).json({ error: "Invalid Pokemon ID" });
       return;
     }
 
     const pokemon = await fetchPokemonById(id);
+    logEnd("API", `GET /api/pokemon/${id}`, startTime, `${pokemon.name} (${pokemon.types.join(", ")})`);
     res.json(pokemon);
   } catch (error) {
-    console.error("Error fetching Pokemon:", error);
+    logError("API", `GET /api/pokemon/${id} failed`, error);
     res.status(500).json({
       error: "Failed to fetch Pokemon",
       details: error instanceof Error ? error.message : String(error),
@@ -60,23 +67,28 @@ apiRouter.get("/pokemon/:id", async (req: Request, res: Response) => {
 
 // POST /api/battle - Generate children and judge battle
 apiRouter.post("/battle", async (req: Request, res: Response) => {
+  const startTime = logStart("API", "POST /api/battle");
+  logInfo("API", "Request payload:", req.body);
+
   try {
     // Validate request body
     const parseResult = BattleRequestSchema.safeParse(req.body);
 
     if (!parseResult.success) {
+      const errorDetails = parseResult.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ");
+      logError("API", "Invalid request body", { errors: errorDetails });
       res.status(400).json({
         error: "Invalid request body",
-        details: parseResult.error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", "),
+        details: errorDetails,
       });
       return;
     }
 
     const battleRequest: BattleRequest = parseResult.data;
 
-    console.log("Fetching parent Pokemon...");
+    // Phase 1: Fetch parent Pokemon
+    logPhase("API", "Phase 1: Fetching parent Pokemon");
 
-    // Fetch all parent Pokemon in parallel
     const [pairAParent1, pairAParent2, pairBParent1, pairBParent2] = await Promise.all([
       fetchPokemonById(battleRequest.pairA.parent1Id),
       fetchPokemonById(battleRequest.pairA.parent2Id),
@@ -84,18 +96,34 @@ apiRouter.post("/battle", async (req: Request, res: Response) => {
       fetchPokemonById(battleRequest.pairB.parent2Id),
     ]);
 
-    console.log("Generating children...");
+    logInfo("API", "Parents fetched:", {
+      pairA: [pairAParent1.name, pairAParent2.name],
+      pairB: [pairBParent1.name, pairBParent2.name],
+    });
 
-    // Generate children in parallel
+    // Phase 2: Generate children
+    logPhase("API", "Phase 2: Generating children");
+
     const [child1, child2] = await Promise.all([
       generateChildFromPair(pairAParent1, pairAParent2),
       generateChildFromPair(pairBParent1, pairBParent2),
     ]);
 
-    console.log("Judging battle...");
+    logInfo("API", "Children generated:", {
+      child1: { name: child1.name, types: child1.types },
+      child2: { name: child2.name, types: child2.types },
+    });
 
-    // Judge the battle
+    // Phase 3: Judge battle
+    logPhase("API", "Phase 3: Judging battle");
+
     const battle = await judgeBattle(child1, child2);
+
+    logInfo("API", "Battle judged:", {
+      winner: battle.winner,
+      confidence: battle.confidence,
+      keyFactors: battle.keyFactors,
+    });
 
     const response: BattleResponse = {
       parents: {
@@ -108,14 +136,14 @@ apiRouter.post("/battle", async (req: Request, res: Response) => {
       },
       battle: {
         ...battle,
-        // Add winner name for convenience
       },
     };
 
-    console.log("Battle complete!");
+    const winnerName = battle.winner === "child1" ? child1.name : child2.name;
+    logEnd("API", "POST /api/battle", startTime, `Winner: ${winnerName} (${battle.confidence}% confidence)`);
     res.json(response);
   } catch (error) {
-    console.error("Error in battle:", error);
+    logError("API", "POST /api/battle failed", error);
     res.status(500).json({
       error: "Failed to complete battle",
       details: error instanceof Error ? error.message : String(error),

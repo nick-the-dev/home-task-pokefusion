@@ -50,7 +50,7 @@ describe("withRetry", () => {
   });
 
   it("logs each failed attempt with attempt number and max retries", async () => {
-    const consoleSpy = vi.spyOn(console, "error");
+    const consoleSpy = vi.spyOn(console, "log");
     const fn = vi
       .fn()
       .mockRejectedValueOnce(new Error("error1"))
@@ -58,11 +58,14 @@ describe("withRetry", () => {
 
     await withRetry(fn, { maxRetries: 2, delayMs: 1 });
 
-    expect(consoleSpy).toHaveBeenCalledWith("Attempt 1/2 failed:", "error1");
+    // Logger outputs formatted string with ANSI codes
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Attempt 1/2 failed: error1")
+    );
   });
 
   it("logs with correct attempt count on multiple failures", async () => {
-    const consoleSpy = vi.spyOn(console, "error");
+    const consoleSpy = vi.spyOn(console, "log");
     const fn = vi
       .fn()
       .mockRejectedValueOnce(new Error("first"))
@@ -71,8 +74,13 @@ describe("withRetry", () => {
 
     await withRetry(fn, { maxRetries: 3, delayMs: 1 });
 
-    expect(consoleSpy).toHaveBeenCalledWith("Attempt 1/3 failed:", "first");
-    expect(consoleSpy).toHaveBeenCalledWith("Attempt 2/3 failed:", "second");
+    // Logger outputs formatted string with ANSI codes
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Attempt 1/3 failed: first")
+    );
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Attempt 2/3 failed: second")
+    );
   });
 
   it("uses default options when none provided", async () => {
