@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { PokemonParentSchema } from "./pokemon";
-import { GeneratedChildSchema } from "./child";
-import { BattleJudgmentSchema } from "./battle";
+import { PokemonParentSchema } from "./pokemon.js";
+import { GeneratedChildSchema } from "./child.js";
+import { BattleJudgmentSchema } from "./battle.js";
 
 // Battle request schema
 export const BattleRequestSchema = z.object({
