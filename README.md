@@ -2,10 +2,12 @@
 
 A full-stack application where users select 4 parent Pokemon (2 pairs), generate 2 offspring via LLM, and have a judge LLM predict a battle outcome.
 
+> For detailed technical documentation, see [DOCUMENTATION.md](./DOCUMENTATION.md)
+
 ## Tech Stack
 
-- **Frontend**: React + Vite + TypeScript + shadcn/ui + Tailwind CSS
-- **Backend**: Express + TypeScript
+- **Frontend**: React 18 + Vite + TypeScript + shadcn/ui + Tailwind CSS
+- **Backend**: Express + TypeScript + Node.js 18+
 - **Shared**: Zod schemas for runtime validation and type inference
 - **LLM**: OpenRouter API (configurable models for generation and judging)
 - **Testing**: Vitest + React Testing Library + StrykerJS (mutation testing)
@@ -14,38 +16,57 @@ A full-stack application where users select 4 parent Pokemon (2 pairs), generate
 
 ```
 home-task-pokefusion/
-├── shared/           # Shared TypeScript types & Zod schemas
-├── server/           # Express backend
-├── client/           # React + Vite frontend
-└── package.json      # Root workspace config (npm workspaces)
+├── shared/                          # Shared TypeScript types & Zod schemas
+│   └── src/schemas/
+│       ├── pokemon.ts               # Parent Pokemon schema (18 types, stats 1-255)
+│       ├── child.ts                 # Generated child schema + signature move
+│       ├── battle.ts                # Battle judgment schema
+│       └── api.ts                   # Request/response schemas
+├── server/                          # Express backend
+│   └── src/
+│       ├── index.ts                 # Express app with helmet, CORS, rate limiting
+│       ├── routes/api.ts            # API endpoints
+│       ├── services/
+│       │   ├── generator.ts         # LLM child Pokemon generation
+│       │   ├── judge.ts             # LLM battle judging
+│       │   ├── openrouter.ts        # OpenRouter client + retry logic
+│       │   ├── pokeapi.ts           # PokeAPI integration
+│       │   └── typeMatchups.ts      # Type effectiveness calculations
+│       ├── prompts/                 # LLM prompt templates
+│       └── utils/                   # Logger + retry utilities
+├── client/                          # React + Vite frontend
+│   └── src/
+│       ├── App.tsx                  # Main UI with battle flow
+│       ├── components/              # UI components
+│       ├── hooks/                   # useBattle, usePokemon
+│       └── lib/                     # API client, type colors
+└── package.json                     # Root workspace config (npm workspaces)
 ```
 
-## Prerequisites
+## Quick Start
+
+### Prerequisites
 
 - Node.js 18+
 - npm 8+
 - OpenRouter API key
 
-## Setup
+### Setup
 
-1. Clone the repository:
 ```bash
+# Clone and install
 git clone <repository-url>
 cd home-task-pokefusion
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
 
-3. Create `.env` file in the root directory:
-```bash
+# Configure environment
 cp .env.example .env
+# Edit .env with your OpenRouter API key
 ```
 
-4. Add your OpenRouter API key to `.env`:
-```
+### Environment Variables
+
+```env
 OPENROUTER_API_KEY=sk-or-your-api-key-here
 GENERATOR_MODEL=nvidia/nemotron-3-nano-30b-a3b:free
 JUDGE_MODEL=tngtech/deepseek-r1t2-chimera:free
@@ -53,19 +74,13 @@ PORT=3001
 POKEAPI_BASE_URL=https://pokeapi.co/api/v2
 ```
 
-## Running the Application
-
-### Development Mode
-
-Start both server and client concurrently:
+### Development
 
 ```bash
+# Start both server and client
 npm run dev
-```
 
-Or run them separately:
-
-```bash
+# Or run separately
 npm run dev:server    # Server at http://localhost:3001
 npm run dev:client    # Client at http://localhost:5173
 ```
@@ -73,20 +88,14 @@ npm run dev:client    # Client at http://localhost:5173
 ### Production Build
 
 ```bash
-# Build all packages (shared must build first)
 npm run build
-
-# Start the server
 cd server && npm start
 ```
 
 ### Docker Deployment
 
 ```bash
-# Build the Docker image
 docker build -t pokefusion .
-
-# Run the container
 docker run -p 3001:3001 \
   -e OPENROUTER_API_KEY=your-key \
   -e GENERATOR_MODEL=nvidia/nemotron-3-nano-30b-a3b:free \
@@ -94,118 +103,113 @@ docker run -p 3001:3001 \
   pokefusion
 ```
 
-## Code Quality
+## Data Flow
 
-```bash
-# Lint the codebase
-npm run lint
-
-# Fix linting issues automatically
-npm run lint:fix
-
-# Type check all workspaces
-npm run typecheck
 ```
-
-## Running Tests
-
-```bash
-# Run all tests
-npm run test
-
-# Run server or client tests only
-npm run test:server
-npm run test:client
-
-# Run a single test file
-cd server && npx vitest run tests/schemas.test.ts
-cd client && npx vitest run tests/components.test.tsx
+┌─────────────────────────────────────────────────────────────────┐
+│                        User Interface                           │
+│  Select 4 Pokemon (2 pairs) → Click "Generate & Battle"         │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    POST /api/battle                              │
+│  Request: { pairA: {id1, id2}, pairB: {id3, id4} }              │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│              Phase 1: Fetch Parents (Parallel)                   │
+│  PokeAPI → 4 parent Pokemon data (10s timeout each)             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│             Phase 2: Generate Children (Parallel)                │
+│  OpenRouter LLM → 2 offspring (60s timeout, 3 retries)          │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                  Phase 3: Judge Battle                           │
+│  OpenRouter LLM → Winner prediction with confidence             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Response                                    │
+│  { parents, children, battle: {winner, confidence, reasoning} } │
+└─────────────────────────────────────────────────────────────────┘
 ```
-
-### Mutation Testing (StrykerJS)
-
-```bash
-# Run all mutation tests
-npm run test:mutation
-
-# Run server or client mutation tests only
-npm run test:mutation:server
-npm run test:mutation:client
-```
-
-## Security Features
-
-- **Rate Limiting**: 100 requests per 15 minutes per IP
-- **Security Headers**: Helmet.js for XSS protection, Content-Type sniffing, etc.
-- **CORS Configuration**: Configurable origins for production
-- **Input Validation**: Zod schemas validate all API inputs
-- **Request Timeouts**: PokeAPI (10s) and LLM (60s) calls have timeouts
-- **Exponential Backoff**: LLM calls retry with increasing delays on failure
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/pokemon` | List available Pokemon (paginated) |
-| GET | `/api/pokemon/:id` | Get single Pokemon details |
+| GET | `/api/pokemon` | List available Pokemon (limit: 5000) |
+| GET | `/api/pokemon/:id` | Get Pokemon details (ID: 1-1025) |
 | POST | `/api/battle` | Generate children and judge battle |
+| GET | `/health` | Health check endpoint |
 
-### POST /api/battle
+## Code Quality
 
-**Request:**
-```json
-{
-  "pairA": {
-    "parent1Id": 25,
-    "parent2Id": 6
-  },
-  "pairB": {
-    "parent1Id": 1,
-    "parent2Id": 7
-  }
-}
+```bash
+npm run lint          # Lint codebase
+npm run lint:fix      # Auto-fix issues
+npm run typecheck     # Type check all workspaces
 ```
 
-**Response:**
-```json
-{
-  "parents": {
-    "pairA": { "parent1": {...}, "parent2": {...} },
-    "pairB": { "parent1": {...}, "parent2": {...} }
-  },
-  "children": {
-    "child1": {
-      "name": "Pikazard",
-      "types": ["electric", "fire"],
-      "stats": { "hp": 58, "attack": 72, ... },
-      "abilities": ["Static Blaze"],
-      "signatureMove": { "name": "Thunder Flare", "type": "electric", "power": 90 }
-    },
-    "child2": {...}
-  },
-  "battle": {
-    "winner": "child1",
-    "winnerName": "Pikazard",
-    "confidence": 72,
-    "reasoning": "Pikazard's superior Speed..."
-  }
-}
+## Testing
+
+```bash
+# Run all tests
+npm run test
+
+# Run by workspace
+npm run test:server
+npm run test:client
+
+# Run single test file
+cd server && npx vitest run tests/schemas.test.ts
+
+# Mutation testing
+npm run test:mutation
 ```
 
-## Test Coverage
+### Test Coverage
 
-### Server Tests (47 tests)
-- Schema validation tests (12 tests)
-- PokéAPI integration tests (16 tests)
-- Retry logic tests (19 tests)
+| Package | Tests | Coverage Areas |
+|---------|-------|----------------|
+| Server | 71 | Schemas, PokeAPI, retry logic, type matchups |
+| Client | 27 | Components, type color utilities |
 
-### Client Tests (17 tests)
-- BattleVerdict component tests (7 tests)
-- ChildCard component tests (10 tests)
+## Security Features
 
-### Mutation Testing
-- Server: ~29% mutation score (focus on core logic)
-- Client: ~15% mutation score (CSS mutations not prioritized)
+- **Rate Limiting**: 100 requests per 15 minutes per IP
+- **Security Headers**: Helmet.js with CSP (stricter in production)
+- **CORS**: Configurable origins via `ALLOWED_ORIGINS`
+- **Input Validation**: Zod schemas validate all API inputs
+- **Timeouts**: PokeAPI (10s), LLM (60s)
+- **Retry Logic**: Exponential backoff (1s → 2s → 4s)
+
+## Key Technologies
+
+### LLM Integration (OpenRouter)
+- Configurable models for generation and judging
+- JSON schema enforcement for structured output
+- Retry with exponential backoff
+- 60-second timeout for free tier models
+
+### Type System
+Supports all 18 official Pokemon types with:
+- Type effectiveness calculations (loadTypeMatchups on startup)
+- Damage multipliers: 0x (immune), 0.5x, 1x, 2x, 4x (dual-type stacking)
+- Type-specific color mappings for UI
+
+### Schema Validation (Zod)
+- **PokemonStats**: 6 stats, each 1-255
+- **GeneratedChild**: Name (1-50 chars), 1-2 types, signature move (power 0-200)
+- **BattleJudgment**: Winner enum, confidence 0-100, reasoning 50-2000 chars
 
 ## License
 
