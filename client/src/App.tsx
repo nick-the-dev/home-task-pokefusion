@@ -46,23 +46,17 @@ function App() {
   };
 
   const handleReroll = async () => {
-    const getRandomId = () => Math.floor(Math.random() * pokemon.length) + 1;
-
-    const newPairA = { parent1: getRandomId(), parent2: getRandomId() };
-    const newPairB = { parent1: getRandomId(), parent2: getRandomId() };
-
-    setPairA(newPairA);
-    setPairB(newPairB);
+    if (!canBattle) return;
 
     reset();
     const request: BattleRequest = {
       pairA: {
-        parent1Id: newPairA.parent1,
-        parent2Id: newPairA.parent2,
+        parent1Id: pairA.parent1!,
+        parent2Id: pairA.parent2!,
       },
       pairB: {
-        parent1Id: newPairB.parent1,
-        parent2Id: newPairB.parent2,
+        parent1Id: pairB.parent1!,
+        parent2Id: pairB.parent2!,
       },
     };
     await runBattle(request);
