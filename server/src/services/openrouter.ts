@@ -11,6 +11,10 @@ if (!GENERATOR_MODEL || !JUDGE_MODEL) {
   throw new Error("GENERATOR_MODEL and JUDGE_MODEL environment variables must be set");
 }
 
+// After validation, these are guaranteed to be strings
+const validatedGeneratorModel: string = GENERATOR_MODEL;
+const validatedJudgeModel: string = JUDGE_MODEL;
+
 interface OpenRouterResponse {
   choices: Array<{
     message: {
@@ -104,12 +108,12 @@ export async function generateChild<T>(
   prompt: string,
   schema: z.ZodSchema<T>
 ): Promise<T> {
-  return callLLMWithRetry(prompt, schema, GENERATOR_MODEL);
+  return callLLMWithRetry(prompt, schema, validatedGeneratorModel);
 }
 
 export async function judgeMatch<T>(
   prompt: string,
   schema: z.ZodSchema<T>
 ): Promise<T> {
-  return callLLMWithRetry(prompt, schema, JUDGE_MODEL);
+  return callLLMWithRetry(prompt, schema, validatedJudgeModel);
 }

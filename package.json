@@ -12,9 +12,13 @@
     "dev:server": "npm run dev -w server",
     "dev:client": "npm run dev -w client",
     "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
-    "test": "npm run test -w shared && npm run test -w server && npm run test -w client",
+    "test": "npm run test -w server && npm run test -w client",
     "test:server": "npm run test -w server",
-    "test:client": "npm run test -w client"
+    "test:client": "npm run test -w client",
+    "test:mutation": "npm run test:mutation -w server && npm run test:mutation -w client",
+    "test:mutation:server": "npm run test:mutation -w server",
+    "test:mutation:client": "npm run test:mutation -w client",
+    "test:all": "npm run test -w server && npm run test -w client"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
