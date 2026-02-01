@@ -23,7 +23,7 @@ const colors = {
   bgRed: "\x1b[41m",
 };
 
-type BadgeType = "API" | "POKEAPI" | "LLM" | "GENERATOR" | "JUDGE" | "RETRY" | "ERROR";
+type BadgeType = "API" | "POKEAPI" | "LLM" | "GENERATOR" | "JUDGE" | "RETRY" | "ERROR" | "TYPE_MATCHUPS";
 
 const badgeColors: Record<BadgeType, string> = {
   API: colors.cyan,
@@ -33,6 +33,7 @@ const badgeColors: Record<BadgeType, string> = {
   JUDGE: colors.blue,
   RETRY: colors.yellow,
   ERROR: colors.red,
+  TYPE_MATCHUPS: colors.blue,
 };
 
 function badge(type: BadgeType): string {
